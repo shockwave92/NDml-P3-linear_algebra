@@ -65,11 +65,9 @@ class Vector(object):
     def is_orthogonal(self,v,tolerance = 1e-10):
         return abs(self.dot(v)) < tolerance
 
-    def is_parallel(self,v):
-        if self.dot(v) == 0:
-            return True
-        else:
-            return (self.is_zero() or v.is_zero() or self.angle_with(v) == math.pi)
+    def is_parallel_to(self,v):
+        #this function to check is parallel or not 
+        return (self.is_zero() or v.is_zero() or self.angle_with(v) == math.pi or self.angle_with(v) == 0)
 
     def is_zero(self,tolerance = 1e-10):
         return self.magnitude < tolerance
@@ -125,7 +123,13 @@ class Vector(object):
     def __eq__(self, v):
         return self.coordinates == v.coordinates
 
-v1 = Vector(['8.462','7.839','-8.187'])
+    def __getitem__(self, i):
+        return self.coordinates[i]
+
+    def __iter__(self):
+        return self.coordinates.__iter__()
+
+'''v1 = Vector(['8.462','7.839','-8.187'])
 w1 = Vector(['6.984','-5.975','4.778'])
 v2 = Vector(['-8.987','-9.838','5.031'])
 w2 = Vector(['-4.268','-1.861','-8.866'])
@@ -135,3 +139,4 @@ w3 = Vector(['-6.007','0.124','5.772'])
 print v1.cross(w1)
 print v2.area_of_parallelogrm(w2)
 print v3.area_of_triangle(w3)
+'''
