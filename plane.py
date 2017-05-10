@@ -47,25 +47,6 @@ class Plane(object):
         p2 = plane.normal_vector
         return p1.is_parallel_to(p2)
 
-    def __eq__(self,p):
-        #This function is going to defind == to check two vector is parallel no not
-        if self.normal_vector.is_zero():
-            if not p.normal_vector.is_zero():
-                return False
-            else:
-                diff = slef.constant_term - p.constant_term
-                return MyDecimal(diff).is_near_zero()
-        elif p.normal_vector.is_zero():
-            return False
-        if not self.is_parallel_to(p):
-            return False
-
-        x0 = self.basepoint
-        y0 = p.basepoint
-        basepoint_diff = x0.minus(y0)
-
-        n = self.normal_vector
-        return basepoint_diff.is_orthogonal(n)
 
     def __str__(self):
 
@@ -124,7 +105,7 @@ class Plane(object):
 class MyDecimal(Decimal):
     def is_near_zero(self, eps=1e-10):
         return abs(self) < eps
-
+'''
 plane1 = Plane(normal_vector=Vector(['-0.412','3.806','0.728']),constant_term='-3.46')
 plane2 = Plane(normal_vector=Vector(['1.03','-9.515','-1.82']),constant_term='8.65')
 print 'intersection 1 is parallel?', plane1.is_parallel_to(plane2)
@@ -137,3 +118,4 @@ plane1 = Plane(normal_vector=Vector(['-7.926','8.625','-7.212']),constant_term='
 plane2 = Plane(normal_vector=Vector(['-2.642','2.875','-2.404']),constant_term='-2.443')
 print 'intersection 1 is parallel?', plane1.is_parallel_to(plane2)
 print 'intersection 1 is equal?', plane1 == plane2
+'''
