@@ -1,7 +1,7 @@
 import math
 from decimal import Decimal, getcontext
 
-getcontext().prec = 30
+getcontext().prec = 10
 
 class Vector(object):
     CANNOT_NORMALIZE_ZERO_VECTOR_MSG = 'Cannot normalized zero vector'
@@ -66,11 +66,11 @@ class Vector(object):
         return abs(self.dot(v)) < tolerance
 
     def is_parallel_to(self,v):
-        #this function to check is parallel or not 
+        #this function to check is parallel or not
         return (self.is_zero() or v.is_zero() or self.angle_with(v) == math.pi or self.angle_with(v) == 0)
 
     def is_zero(self,tolerance = 1e-10):
-        return self.magnitude < tolerance
+        return set(self.coordinates) == set([Decimal(0)])
 
     def cross(self,v):
         try:
@@ -104,18 +104,18 @@ class Vector(object):
         try:
             u1 = self.normalized()
             u2 = v.normalized()
-            angle_in_radians = math.acos(u1.dot(u2))
+            angle_in_radians = math.acos(round(u1.dot(u2),10))
             if in_degrees:
-                degrees_per_radian = Decimal('180.') / math.pi
-                return angle_in_radians * degrees_per_radian
+                degrees_per_radian = (180. / math.pi)
+                return Decimal(angle_in_radians * degrees_per_radian)
             else:
-                return angle_in_radians
+                return Decimal(angle_in_radians)
+
         except Exception as e:
             if str(e) == self.CANNOT_NORMALIZE_ZERO_VECTOR_MSG:
                 raise Exception('Cannot compute an angle with the zero vector')
             else:
                 raise e
-
     def __str__(self):
         return 'Vector: {}'.format(self.coordinates)
 

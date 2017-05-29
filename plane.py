@@ -47,6 +47,21 @@ class Plane(object):
         p2 = plane.normal_vector
         return p1.is_parallel_to(p2)
 
+    def __eq__(self,plane):
+        #This function is going to defind == to check two vector is parallel no not
+        if self.normal_vector.is_zero():
+            if not plane.normal_vector.is_zero():
+                return False
+            else:
+                diff = self.constant_term - plane.constant_term
+                return MyDecimal(diff).is_near_zero()
+        elif plane.normal_vector.is_zero():
+            return False
+        if not self.is_parallel_to(plane):
+            return False
+
+        basepoint_diff = self.basepoint.minus(plane.basepoint)
+        return basepoint_diff.is_orthogonal(self.normal_vector)
 
     def __str__(self):
 
