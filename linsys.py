@@ -25,6 +25,51 @@ class LinearSystem(object):
         except AssertionError:
             raise Exception(self.ALL_PLANES_MUST_BE_IN_SAME_DIM_MSG)
 
+    def solution(self):
+        """
+        Return the solutions of the System
+        # if there is 0 = k there are no solutions
+        # if there are less planes than dimensions there are infinite solutions
+        # if there are more than 1 pivot variable there are infinite solutions
+        # otherwise there is a single solution
+        """
+        try:
+            return self.do_gaussian()
+
+        except Exception as e:
+            if (str(e) == self.NO_SOLUTIONS_MSG or
+                str(e) == self.INF_SOLUTIONS_MSG):
+                return str(e)
+            #else:
+            #    raise e
+
+    def do_gaussian(self):
+        rref = self.compute_rref()
+        rref.raise_exception_if_contradictory_equation()
+        rref.raise_exception_if_too_few_pivots()
+
+        sol = [rref.planes[i].constant_term for i in range(rref.dimension)]
+        return Vector(sol)
+
+    def raise_exception_if_contradictory_equation(self):
+        for p in self.planes:
+            try:
+                p.first_nonzero_index(p.normal_vector)
+            except Exception as e:
+                if str(e) =='No nonzero elements found':
+                    constant_term = MyDecimal(p.constant_term)
+                    if not constant_term.is_near_zero():
+                        raise Exception(self.NO_SOLUTIONS_MSG)
+                else:
+                    raise e
+
+    def raise_exception_if_too_few_pivots(self):
+        pivot = self.indices_of_first_nonzero_terms_in_each_row()
+        num_pivots = sum([1 if index >= 0 else 0 for index in pivot])
+        var = self.dimension
+        if pivot < var:
+            raise Exception(self.INF_SOLUTIONS_MSG)
+
     def compute_triangular_form(self):
         system = deepcopy(self)
         equ = len(system)
@@ -63,7 +108,26 @@ class LinearSystem(object):
 
     def compute_rref(self):
         tf = self.compute_triangular_form()
+        equ = len(tf)
+        leadingVar = tf.indices_of_first_nonzero_terms_in_each_row()
+        for i in range(equ):
+            j = leadingVar[i]
+            if j < 0:
+                continue
+            tf.scale_row_to_make_coefficent_equal_one(i, j)
+            tf.clear_coeefficents_above(i,j)
         return tf
+
+    def scale_row_to_make_coefficent_equal_one(self, row, col):
+        n = self[row].normal_vector
+        beta = Decimal('1.0') / n[col]
+        self.multiply_coefficient_and_row(beta,row)
+
+    def clear_coeefficents_above(self, row, col):
+        for k in range(row):
+            n = self[k].normal_vector
+            a = -(n[col])
+            self.add_multiple_times_row_to_row(a, row, k)
 
     def swap_rows(self, row1, row2):
         trow = self[row1]
@@ -135,43 +199,21 @@ class MyDecimal(Decimal):
 
 #print MyDecimal('1e-9').is_near_zero()
 #print MyDecimal('1e-11').is_near_zero()
-'''*---------------Test Code For Triangular Form----------------*
-p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
-p2 = Plane(normal_vector=Vector(['0','1','1']), constant_term='2')
+
+p1 = Plane(normal_vector=Vector(['5.862','1.178','-10.3662']), constant_term='-8.15')
+p2 = Plane(normal_vector=Vector(['-2.931','-0.589','5.183']), constant_term='-4.075')
 s = LinearSystem([p1,p2])
-t = s.compute_triangular_form()
-#print s, t
-if not (t[0] == p1 and
-        t[1] == p2):
-    print 'test case 1 failed'
+print s.solution()
 
-p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
-p2 = Plane(normal_vector=Vector(['1','1','1']), constant_term='2')
-s = LinearSystem([p1,p2])
-t = s.compute_triangular_form()
-if not (t[0] == p1 and
-        t[1] == Plane(constant_term='1')):
-    print 'test case 2 failed'
-
-p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
-p2 = Plane(normal_vector=Vector(['0','1','0']), constant_term='2')
-p3 = Plane(normal_vector=Vector(['1','1','-1']), constant_term='3')
-p4 = Plane(normal_vector=Vector(['1','0','-2']), constant_term='2')
-s = LinearSystem([p1,p2,p3,p4])
-t = s.compute_triangular_form()
-if not (t[0] == p1 and
-        t[1] == p2 and
-        t[2] == Plane(normal_vector=Vector(['0','0','-2']), constant_term='2') and
-        t[3] == Plane()):
-    print 'test case 3 failed'
-
-p1 = Plane(normal_vector=Vector(['0','1','1']), constant_term='1')
-p2 = Plane(normal_vector=Vector(['1','-1','1']), constant_term='2')
-p3 = Plane(normal_vector=Vector(['1','2','-5']), constant_term='3')
+p1 = Plane(normal_vector=Vector(['8.631','5.112','-1.816']), constant_term='-5.113')
+p2 = Plane(normal_vector=Vector(['4.315','11.132','-5.27']), constant_term='-6.775')
+p3 = Plane(normal_vector=Vector(['-2.158','3.01','-1.727']), constant_term='-0.831')
 s = LinearSystem([p1,p2,p3])
-t = s.compute_triangular_form()
-if not (t[0] == Plane(normal_vector=Vector(['1','-1','1']), constant_term='2') and
-        t[1] == Plane(normal_vector=Vector(['0','1','1']), constant_term='1') and
-        t[2] == Plane(normal_vector=Vector(['0','0','-9']), constant_term='-2')):
-    print 'test case 4 failed'
-*---------------Test Code For Triangular Form----------------*'''
+print s.solution()
+
+p1 = Plane(normal_vector=Vector(['5.262','2.739','-9.878']), constant_term='-3.441')
+p2 = Plane(normal_vector=Vector(['5.111','6.358','7.638']), constant_term='-2.152')
+p3 = Plane(normal_vector=Vector(['2.016','-9.924','-1.367']), constant_term='-9.278')
+p4 = Plane(normal_vector=Vector(['2.167','-13.543','-18.883']), constant_term='-10.567')
+s = LinearSystem([p1,p2,p3,p4])
+print s.solution()
