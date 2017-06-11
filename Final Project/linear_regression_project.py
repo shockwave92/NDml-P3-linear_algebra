@@ -5,14 +5,14 @@
 # 
 # ## 1.1 创建一个 4*4 的单位矩阵
 
-# In[34]:
+# In[1]:
 
 # 这个项目设计来帮你熟悉 python list 和线性代数
 # 你不能调用任何python库，包括NumPy，来完成作业
 import math
 import pprint
 
-pp = pprint.PrettyPrinter(indent = 1,width=40)
+pp = pprint.PrettyPrinter(indent = 1,width=20)
 test = [[1],[2],[3]]
 A = [[1,2,3], 
      [2,3,3], 
@@ -23,23 +23,21 @@ B = [[1,2,3,5],
      [1,2,5,1]]
 
 #TODO 创建一个 4*4 单位矩阵
-I = [[1.15362,2,3,4],
-     [2,2.6346,3,4],
-     [3,2,3,4],
-     [4,2.1243,3.5342,4]]
+I = [[1,0,0,0],
+     [0,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]]
 
 
 # ## 1.2 返回矩阵的行数和列数
 
-# In[35]:
+# In[2]:
 
 # TODO 返回矩阵的行数和列数
 def shape(M):
     row = len(M)
     col = len(M[0])
     return row,col
-
-shape(test)
 
 
 # ## 1.3 每个元素四舍五入到特定小数数位
@@ -55,8 +53,6 @@ def matxRound(M, decPts=4):
             M[l][i] = round(M[l][i],decPts)
     pass
 
-matxRound(I)
-
 
 # ## 1.4 计算矩阵的转置
 
@@ -64,7 +60,7 @@ matxRound(I)
 
 # TODO 计算矩阵的转置
 def transpose(M):
-    return [[row[i] for row in M] for i in range(len(M[0]))]
+    return map(list,zip(*M))
 
 
 # ## 1.5 计算矩阵乘法 AB
@@ -74,11 +70,7 @@ def transpose(M):
 # TODO 计算矩阵乘法 AB，如果无法相乘则返回None
 def matxMultiply(A, B):
     if len(A[0]) == len(B):
-        res = [[0] * len(B[0]) for i in range(len(A))]
-        for i in range(len(A)):
-            for j in range(len(B[0])):
-                for k in range(len(B)):
-                    res[i][j] += A[i][k] * B[k][j]
+        res = [[sum(a*b for a,b in zip(row,col)) for col in zip(*B)] for row in A]
         return res
     else:
         return None
@@ -91,19 +83,46 @@ def matxMultiply(A, B):
 # In[6]:
 
 #TODO 测试1.2 返回矩阵的行和列
-print 'Row and Column in array are : ', shape(I)
+print 'Test 1.2'
+def test_1_2(M):
+    row, col = shape(M)
+    assert row == len(M) and col == len(M[0]), 'ROW_AND_COLUMN_NOT_RIGHT'
+    print 'Row and Column in matrix are : ' ,shape(M)
+test_1_2(B)
+
+
+# In[7]:
 
 #TODO 测试1.3 每个元素四舍五入到特定小数数位
-matxRound(I)
-pp.pprint(I)
+print '1.3 Matrix round: '
+a = [[1.1342342,2.513262],
+    [6.5235345334,1.23742938746]]
+matxRound(a)
+pp.pprint(a)
+
+
+# In[8]:
 
 #TODO 测试1.4 计算矩阵的转置
-temp = transpose(I)
-print 'Result for test 1.4 : '
-pp.pprint(temp)
+def test_1_4(M):
+    assert M == transpose(transpose(M)),'Not pass test, check again'
+    print 'OK, function works'
+#DO test
+print 'Test 1.4 - matrix for test: '
+pp.pprint(A)
+print 'matrix after transpose: '
+pp.pprint(transpose(A))
+test_1_4(A)
+
+
+# In[9]:
 
 #TODO 测试1.5 计算矩阵乘法AB，AB无法相乘
-print 'Test matrix multiply when not avalible : '
+def test_1_5(A,b):
+    assert matxMultiply(A,b) != None, 'A and B can not multiply'
+    print 'Result for A and B multiply', matxMultiply(A,b)
+    
+print 'Test 1.5 - matrix multiply when not avalible : '
 A = [[1,2,3,4], 
      [2,3,3,6], 
      [1,2,5,2]]
@@ -111,11 +130,14 @@ A = [[1,2,3,4],
 B = [[1,2,3,5], 
      [2,3,3,5], 
      [1,2,5,1]]
-temp = matxMultiply(A,B)
-print temp
+
+test_1_5(A,B)
+
+
+# In[10]:
 
 #TODO 测试1.5 计算矩阵乘法AB，AB可以相乘
-print 'Test matrix multiply when avalible : '
+print 'Test 1.5 - matrix multiply when avalible : '
 A = [[1,2,3], 
      [2,3,3], 
      [1,2,5]]
@@ -124,8 +146,7 @@ B = [[1,2,3,5],
      [2,3,3,5], 
      [1,2,5,1]]
 
-temp = matxMultiply(A,B)
-print temp
+test_1_5(A,B)
 
 
 # # 2 Gaussign Jordan 消元法
@@ -153,17 +174,21 @@ print temp
 #     ...    & ... & ... & ...& ...\\
 #     a_{n1}    & a_{n2} & ... & a_{nn} & b_{n} \end{bmatrix}$
 
-# In[7]:
+# In[11]:
 
 # TODO 构造增广矩阵，假设A，b行数相同
 def augmentMatrix(A, b):
     if len(A) == len(b):
-        temp = []
-        for i in range(len(A)):
-            A[i].extend(b[i])
-        return A
+        Ab = [A+b for A,b in zip(A,b)]
+        return Ab
     else:
         return 'Can not augment this two matrix'
+
+
+# In[13]:
+
+# test augmentMatrix function
+augmentMatrix(A,B)
 
 
 # ## 2.2 初等行变换
@@ -171,14 +196,12 @@ def augmentMatrix(A, b):
 # - 把某行乘以一个非零常数
 # - 把某行加上另一行的若干倍：
 
-# In[8]:
+# In[14]:
 
 # TODO r1 <---> r2
 # 直接修改参数矩阵，无返回值
 def swapRows(M, r1, r2):
-    trow = M[r1]
-    M[r1] = M[r2]
-    M[r2] = trow
+    M[r1], M[r2] = M[r2], M[r1]
     pass
 
 # TODO r1 <--- r1 * scale， scale!=0
@@ -222,7 +245,7 @@ def addScaledRow(M, r1, r2, scale):
 # ### 注：
 # 我们并没有按照常规方法先把矩阵转化为行阶梯形矩阵，再转换为化简行阶梯形矩阵，而是一步到位。如果你熟悉常规方法的话，可以思考一下两者的等价性。
 
-# In[10]:
+# In[15]:
 
 # TODO 实现 Gaussain Jordan 方法求解 Ax = b
 
@@ -242,7 +265,7 @@ def gj_Solve(A, b, decPts=4, eps = 1.0e-16):
     if len(A) == len(b):
         '''if A,b have same row, do result. otherwise return None'''
         Ab = augmentMatrix(A,b)
-        (h, w) = (len(Ab), len(Ab[0]))
+        (h, w, hb) = (len(A), len(A[0]),len(b))
         #matxRound(Ab,decPts)
         i = 0
         while i < h:
@@ -296,45 +319,69 @@ def gj_Solve(A, b, decPts=4, eps = 1.0e-16):
 #     Z    & Y \\
 # \end{bmatrix} , \text{其中 I 为单位矩阵，Z 为全0矩阵，Y 的第一列全0}$，的情況下，
 # 
-# 此方陣Ａ可被表示為：
-# 
-# $A = \begin{bmatrix}
-#     1 & 0 & 0 & ... & x_{11} & ... & x_{1n}\\
-#     0 & 1 & 0 & ... & x_{21} & ... & x_{2n}\\
-#     0 & 0 & 1 & ... & x_{31} & ... & x_{3n}\\
-#     ... & ... & ... & ... & ... & ... & ...\\
-#     0 & 0 & 0 & 1 & x_{1n} & ... & x_{nn}  \\
-#     0 & 0 & 0 & 0 &  0     & ... &  0      \\
-#     0 & 0 & 0 & 0 & y_{21} & ... & x_{2n}  \\
-#     0 & 0 & 0 & 0 & ...    & ... & ...     \\
-#     0 & 0 & 0 & 0 & y_{n1} & ... & y_{nn} \end{bmatrix}$
-# 
 # 由奇異矩陣的定義可知一方陣是否為奇異矩陣可由此方陣之行列式的絕對值是否為0來判斷，
 # 
-# 方陣Ａ由於Ｚ為全零矩陣 且 Ｙ矩陣的第一列全為零：因此在方陣Ａ的行列式必為0。
+# 方陣Ａ由於Ｚ為全零矩陣，因此在方陣Ａ的行列式可表示為：
+# 
+# $
+# det(A) = det(\begin{bmatrix} I & X \\ 0 & Y \end{bmatrix}) \\
+#        = det(IY) - 0 \\
+#        = det(I)det(Y) \\
+#        = det(\begin{bmatrix}1 & 0 & 0 & ... & 0 \\
+#                             0 & 1 & 0 & ... & 0\\
+#                             0 & 0 & 1 & ... & 0\\
+#                             ... & ... & ... & ... & ... \\
+#                             0 & 0 & 0 & ... & 1 \\
+#               \end{bmatrix})
+#          det(\begin{bmatrix}0 & y_{12} & y_{13} & ... & y_{1n} \\
+#                             0 & y_{22} & y_{23} & ... & y_{2n}\\
+#                             0 & y_{32} & y_{33} & ... & y_{3n}\\
+#                             ... & ... & ... & ... & ... \\
+#                             0 & y_{n2} & y_{n3} & ... & y_{nn} \\
+#               \end{bmatrix})
+# $
+# 
+# 另由於I為單位矩陣，其行列式為1，因此det(A)可以表示為：
+# 
+# $
+# det(A) = det(\begin{bmatrix}0 & y_{12} & y_{13} & ... & y_{1n} \\
+#                             0 & y_{22} & y_{23} & ... & y_{2n}\\
+#                             0 & y_{32} & y_{33} & ... & y_{3n}\\
+#                             ... & ... & ... & ... & ... \\
+#                             0 & y_{n2} & y_{n3} & ... & y_{nn} \\
+#               \end{bmatrix})\\
+#        = 0 * y_{22} * ... * y_{nn} + ... + y_{1n} * 0 * y_{32} - y_{1n} * ... * y_{(n-1)2} * 0 - ... - y_{12} * 0 * ...*y_{nn} \\
+#        = 0
+# $
+# 
+# 故det(A) = 0
 # 
 # 可知方陣Ａ必為奇異矩陣。
 # 
 
 # ## 2.5 测试 gj_Solve() 实现是否正确
 
-# In[11]:
+# In[16]:
 
 # TODO 构造 矩阵A，列向量b，其中 A 为奇异矩阵
 matrix1 = [  
-    [0, 6, -1],  
-    [0, 8, 3],  
-    [0, 4, 1],  
+    [0, 1],  
+    [0, 3]  
 ]  
 matrix2 = [  
     [1],  
-    [0],
     [0]
 ]  
-
-test1 = augmentMatrix(matrix1,matrix2)
-print 'Matrix Ab of A is 奇异矩阵: ',test1
-
+#DO TEST
+if len(matrix1) == len(matrix2):
+    if gj_Solve(matrix1,matrix2) == None:
+        Ab = augmentMatrix(matrix1,matrix2)
+        print 'Matrix Ab of A is 奇异矩阵: ',Ab
+    else:
+        print 'A不為奇異矩陣'
+else:
+    'A, b行數不同'
+    
 # TODO 构造 矩阵A，列向量b，其中 A 为非奇异矩阵
 matrix3 = [  
     [4, 6, -1],  
@@ -351,19 +398,32 @@ matrix2 = [
     [0],
     [0]
 ]  
-
-test2 = augmentMatrix(matrix3,matrix2)
-print 'Matrix Ab of A is 非奇异矩阵: ',test2
+#DO TEST
+if len(matrix3) == len(matrix2):
+    if gj_Solve(matrix3,matrix2) != None:
+        Ab = augmentMatrix(matrix3,matrix2)
+        print 'Matrix Ab of A is 非奇异矩阵: ',Ab
+    else:
+        print 'A為奇異矩陣'
+else:
+    'A, b行數不同'
+    
 # TODO 求解 x 使得 Ax = b
 x = gj_Solve(matrix3,matrix2)
 print 'For Ax = b, x = ',x
+
 # TODO 计算 Ax
 a = matxMultiply(matrixA, x)
 matxRound(a)
 print 'Ax = ',a
+
 # TODO 比较 Ax 与 b
-print 'b = ',matrix2
-print 'Ax = b'
+def compare_Ax_and_b(Ax,b):
+    assert Ax == b, 'Ax != b, try again'
+    print 'OK, Ax == b'
+
+# DO TEST
+compare_Ax_and_b(a,matrix2)
 
 
 # # 3 线性回归: 
@@ -419,16 +479,7 @@ print 'Ax = b'
 # 定義損失函數 E = \sum_{i=1}^{n}{(y_i - mx_i - b)^2}
 # $$
 # 
-# 
-# 將此方程式展開後可得到
-# $$
-# E = \sum_{i=1}^{n}{(y_i^2 + (mx_i)^2 + b^2 - 2y_imx_i - 2y_ib + 2mx_ib)} \\
-#   = \sum_{i=1}^{n}{(y_i^2 - 2y_imx_i - 2y_ib + (mx_i)^2 + 2mx_ib + b^2)} \\
-#   = \sum_{i=1}^{n}{(y_i^2 - 2y_i(mx_i + b) + (mx_i + b)^2)} \\
-#   = \sum_{i=1}^{n}{(y_i - (mx_i + b))^2}
-# $$
-# 
-# 再將此方程式求導後可得到
+# 再將此方程式對m及b求導後可得到
 # 
 # $$
 # \frac{\partial E}{\partial m} = \sum_{i=1}^{n}{-2x_i(y_i - mx_i - b)}
@@ -587,51 +638,23 @@ print 'Ax = b'
 # 
 # ### 求解方程 $X^TXh = X^TY $, 计算线性回归的最佳参数 h
 
-# In[48]:
-
-def inverse_matrix(matrix):
-    dimension=len(matrix)
-    diagnoal=creat_diagnal_matrix(dimension)
-    "This loop control every diagnal number must be dived as 1"
-    for d in range(dimension):
-        "temp store the information which every row of numbers should be devided"
-        temp=matrix[d][d]
-        for c in range(dimension):
-            matrix[d][c]=matrix[d][c]/temp
-            diagnoal[d][c]=diagnoal[d][c]/temp
-        #print 'process matrix:\n',matrix
-        #print 'process diagnoal:\n',diagnoal        
-        "This loop control every row should mutiply a number(mu) and add to another row"
-        for r in range(dimension):
-            mu=-matrix[r][d]
-            "But one row which we dived as 1 at the first time should be escaped"
-            if(r!=d):
-                for c in range(dimension):
-                    matrix[r][c]=matrix[d][c]*mu+matrix[r][c]
-                    diagnoal[r][c]=diagnoal[d][c]*mu+diagnoal[r][c]
-                #print mu
-                #print 'procee\n',matrix
-    return diagnoal
-
-
-# In[71]:
+# In[17]:
 
 # TODO 实现线性回归
 '''
 参数：(x,y) 二元组列表
 返回：m，b
 '''
-import numpy as np
-
 def linearRegression(points):
     xtx = matxMultiply(transpose(points[0]),points[0])
     xty = matxMultiply(transpose(points[0]),points[1])
-    h = matxMultiply(np.linalg.inv(xtx),xty)
+    h = gj_Solve(xtx,xty)
     return h[0],h[1]
 
 
-# In[72]:
+# In[18]:
 
+#Test linearRegression
 a = [[1,1],[5,1],[2,1],[3,1],[5,1]]
 b = [[7],[5],[4],[3],[5]]
 t1 = [a,b]
@@ -642,13 +665,12 @@ print temp
 
 # ## 3.3 测试你的线性回归实现
 
-# In[139]:
+# In[19]:
 
 # TODO 构造线性函数
 #y = 4x - 100
 # TODO 构造 100 个线性函数上的点，加上适当的高斯噪音
 import random
-import numpy as np
 mx = []
 my = []
 i = 0
@@ -660,8 +682,8 @@ for i in range(100):
 #print mx,my
 mx2,my2=mx,my
 for i in range(100):
-    mx2[i] = mx[i] + random.gauss(np.mean(mx),np.std(mx))
-    my2[i] = my[i] + random.gauss(np.mean(my),np.std(my))
+    mx2[i] = mx[i] + random.gauss(1,0)
+    my2[i] = my[i] + random.gauss(1,0)
 #print 'mx2=',mx2,'my2=',my2
 #TODO 对这100个点进行线性回归，将线性回归得到的函数和原线性函数比较
 mx3 = []
@@ -677,7 +699,7 @@ print '原設定線性函數為([4],[-100]), 100個亂數點進行回歸後得�
 # 
 # 请确保你的实现通过了以下所有单元测试。
 
-# In[12]:
+# In[20]:
 
 import unittest
 import numpy as np
@@ -821,4 +843,9 @@ class LinearRegressionTestCase(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LinearRegressionTestCase)
 unittest.TextTestRunner(verbosity=3).run(suite)
+
+
+# In[ ]:
+
+
 
